@@ -2,24 +2,23 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    [Header("Target Settings")]
-    public Transform target;        // ลากตัว Golem มาใส่ในช่องนี้
-    
-    [Header("Follow Settings")]
-    public float smoothSpeed = 0.125f; // ค่าความนุ่มนวล (0.1 - 0.5 กำลังดี)
-    public Vector2 offset = new Vector2(0, 1); // ระยะห่างจากตัวละคร (x, y)
+    public Transform player;    // ลากตัว Golem มาใส่
+    public float minY = 0f;     // ค่า Y ต่ำสุดที่ยอมให้กล้องลงไป (ปรับตามหน้างาน)
+    public Vector3 offset = new Vector3(0, 0, -10); // ระยะห่างจากตัวละคร
 
     void LateUpdate()
     {
-        if (target != null)
+        if (player != null)
         {
-            // คำนวณตำแหน่งที่กล้องควรจะไป โดยรักษาค่า z ของกล้องไว้ที่ -10 เสมอ
-            Vector3 desiredPosition = new Vector3(target.position.x + offset.x, target.position.y + offset.y, -10f);
-            
-            // ใช้ Lerp เพื่อให้กล้องเคลื่อนที่ตามแบบนุ่มๆ ไม่กระชาก
-            Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
-            
-            transform.position = smoothedPosition;
+            // ให้กล้องตามตัวละคร
+            float targetY = player.position.y;
+
+            // --- หัวใจสำคัญ: ล็อคไม่ให้กล้องต่ำกว่าพื้น ---
+            // ถ้า targetY น้อยกว่า minY ให้ใช้ค่า minY แทน
+            float clampedY = Mathf.Max(targetY, minY);
+
+            // อัปเดตตำแหน่งกล้อง
+            transform.position = new Vector3(player.position.x, clampedY, offset.z);
         }
     }
 }
