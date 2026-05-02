@@ -2,20 +2,56 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
-    void OnCollisionEnter2D(Collision2D collision)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        // 1. ถ้าชนโดนศัตรู (เช็คจาก Tag)
+        ThrowableItem throwable = GetComponent<ThrowableItem>();
+
         if (collision.gameObject.CompareTag("Enemy"))
         {
-            // สั่งให้ศัตรูรับความเสียหาย/เล่นท่าตาย
-            collision.gameObject.GetComponent<EnemyHealth>()?.TakeDamage();
-            
-            // ลบของที่ปาทิ้งทันที
-            Destroy(gameObject);
+            if (throwable != null && throwable.isThrown)
+            {
+                collision.gameObject.GetComponent<EnemyHealth>()?.TakeDamage();
+                Destroy(gameObject); 
+            }
         }
-        
-        // 2. ถ้าชนพื้น (ไม่ต้องทำอะไร ให้มันคาไว้บนพื้นตามที่คุณต้องการ)
-        // แต่ถ้าปาแล้วอยากให้หายหลังจากผ่านไปสักพัก (กันรกแมพ) ให้เพิ่มบรรทัดล่างนี้:
-        // Destroy(gameObject, 5f); 
+        else if (collision.gameObject.CompareTag("Breakable"))
+        {
+            if (throwable != null && throwable.isThrown)
+            {
+                BreakableWall wall = collision.gameObject.GetComponent<BreakableWall>();
+                if (wall != null)
+                {
+                    if (wall.wallHealth <= 1)
+                    {
+                        wall.TakeDamage();
+                        Destroy(gameObject); 
+                    }
+                    else
+                    {
+                        wall.TakeDamage();
+                    }
+                }
+            }
+        }
+        // แก้เป็น Finalwall (w เล็ก) ให้ตรงกับชื่อไฟล์ของคุณแล้วครับ
+        else if (collision.gameObject.CompareTag("Finalwall"))
+        {
+            if (throwable != null && throwable.isThrown && throwable.isFinalStone)
+            {
+                Finalwall fWall = collision.gameObject.GetComponent<Finalwall>();
+                if (fWall != null)
+                {
+                    if (fWall.wallHealth <= 1)
+                    {
+                        fWall.TakeDamageFromStone();
+                        Destroy(gameObject); 
+                    }
+                    else
+                    {
+                        fWall.TakeDamageFromStone();
+                    }
+                }
+            }
+        }
     }
 }

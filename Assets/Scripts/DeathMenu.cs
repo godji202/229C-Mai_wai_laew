@@ -7,7 +7,7 @@ public class DeathMenu : MonoBehaviour
     public void RestartGame()
     {
         // โหลดฉากปัจจุบันใหม่
-        SceneManager.LoadScene("Test");
+        SceneManager.LoadScene("GamePlay");
         Time.timeScale = 1f; // กลับมาให้เกมเดินปกติ
     }
 

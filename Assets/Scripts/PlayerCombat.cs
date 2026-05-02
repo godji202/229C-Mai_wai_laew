@@ -7,7 +7,6 @@ public class PlayerCombat : MonoBehaviour
     public float attackTime = 0.5f; 
     public Transform attackPoint;    
     public float attackRange = 0.5f; 
-    public LayerMask enemyLayer;     
 
     private Animator anim;
     private PlayerMove moveScript;
@@ -31,15 +30,23 @@ public class PlayerCombat : MonoBehaviour
     IEnumerator PlayAttack()
     {
         moveScript.isAttacking = true; 
-        rb.linearVelocity = Vector2.zero; // หยุดกึกทันที
-        
+        rb.linearVelocity = Vector2.zero; 
         anim.Play(attackAnimation);    
 
-        // เช็คศัตรูในระยะ
-        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayer);
-        foreach (Collider2D enemy in hitEnemies)
+        Collider2D[] hitObjects = Physics2D.OverlapCircleAll(attackPoint.position, attackRange);
+        
+        foreach (Collider2D hit in hitObjects)
         {
-            enemy.GetComponent<EnemyHealth>()?.TakeDamage();
+            if (hit.CompareTag("Enemy"))
+            {
+                hit.GetComponent<EnemyHealth>()?.TakeDamage();
+            }
+            else if (hit.CompareTag("Breakable"))
+            {
+                // แก้ Error: ลบเลข 1 ในวงเล็บออก
+                hit.GetComponent<BreakableWall>()?.TakeDamage();
+            }
+            // ไม่ต้องใส่เช็ค Finalwall ในนี้ ดาบเลยจะฟันไม่เข้าโดยปริยาย
         }
         
         yield return new WaitForSeconds(attackTime); 
