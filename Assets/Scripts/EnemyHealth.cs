@@ -2,7 +2,12 @@ using UnityEngine;
 
 public class EnemyHealth : MonoBehaviour
 {
-    public string dieAnimation = "golem die"; 
+    public string dieAnimation = "sk die";
+    
+    [Header("Drop System")]
+    public GameObject healthPotionPrefab; // ลาก Prefab ของขวดยามาใส่ช่องนี้
+    [Range(0, 100)] public float dropChance = 50f; // โอกาสดรอป (เช่น 50%)
+
     private bool isDead = false;
     private Animator anim;
     private Rigidbody2D rb;
@@ -18,33 +23,37 @@ public class EnemyHealth : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        // 1. หยุดฟิสิกส์ทันที ไม่ให้ไถล ไม่ให้ร่วง
+        // หยุดทุกอย่างเหมือนเดิม
         if (rb != null)
         {
             rb.linearVelocity = Vector2.zero;
             rb.bodyType = RigidbodyType2D.Static; 
         }
 
-        // 2. ปิด Collider ทันที
-        if (GetComponent<Collider2D>() != null) 
-            GetComponent<Collider2D>().enabled = false;
+        if (GetComponent<EnemyAI>() != null) GetComponent<EnemyAI>().enabled = false;
+        if (GetComponent<Collider2D>() != null) GetComponent<Collider2D>().enabled = false;
 
-        // 3. (สำคัญมาก) ปิดสคริปต์เดินหรือสคริปต์อื่นๆ ในตัวศัตรู
-        // เพื่อไม่ให้มันสั่งเล่นท่า Idle/Walk มาทับท่าตาย
-        MonoBehaviour[] allScripts = GetComponents<MonoBehaviour>();
-        foreach (MonoBehaviour script in allScripts)
-        {
-            // ปิดทุกสคริปต์ยกเว้นอันนี้ (EnemyHealth)
-            if (script != this) script.enabled = false;
-        }
+        if (anim != null) anim.Play(dieAnimation);
 
-        // 4. สั่งเล่นท่าตาย (เช็คชื่อใน Animator ให้ตรงเป๊ะ)
-        if (anim != null) 
-        {
-            anim.Play(dieAnimation);
-        }
+        // --- ส่วนที่เพิ่ม: ระบบสุ่มดรอป ---
+        TryDropItem();
 
-        // ลบตัวตนทิ้งหลังจากแอนิเมชันเล่นจบ
         Destroy(gameObject, 2.5f); 
+    }
+
+    void TryDropItem()
+    {
+        // สุ่มเลข 0-100
+        float randomValue = Random.Range(0f, 100f);
+
+        // ถ้าเลขที่สุ่มได้ น้อยกว่าโอกาสที่ตั้งไว้ ให้สร้างของ
+        if (randomValue <= dropChance)
+        {
+            if (healthPotionPrefab != null)
+            {
+                // สร้างขวดยาตรงตำแหน่งที่มอนสเตอร์ตาย
+                Instantiate(healthPotionPrefab, transform.position, Quaternion.identity);
+            }
+        }
     }
 }
