@@ -7,6 +7,9 @@ public class PlayerCombat : MonoBehaviour
     public float attackTime = 0.5f; 
     public Transform attackPoint;    
     public float attackRange = 0.5f; 
+    
+    // 1. เพิ่มตัวแปรสำหรับเก็บไฟล์เสียง
+    public AudioSource attackAudio; 
 
     private Animator anim;
     private PlayerMove moveScript;
@@ -17,6 +20,9 @@ public class PlayerCombat : MonoBehaviour
         anim = GetComponent<Animator>();
         moveScript = GetComponent<PlayerMove>();
         rb = GetComponent<Rigidbody2D>();
+
+        // 2. ถ้าลืมลากใส่ใน Inspector ให้มันพยายามหา AudioSource ในตัวมันเองก่อน
+        if (attackAudio == null) attackAudio = GetComponent<AudioSource>();
     }
 
     void Update()
@@ -33,6 +39,12 @@ public class PlayerCombat : MonoBehaviour
         rb.linearVelocity = Vector2.zero; 
         anim.Play(attackAnimation);    
 
+        // 3. สั่งเล่นเสียงทันทีที่กดตี
+        if (attackAudio != null) 
+        {
+            attackAudio.Play(); 
+        }
+
         Collider2D[] hitObjects = Physics2D.OverlapCircleAll(attackPoint.position, attackRange);
         
         foreach (Collider2D hit in hitObjects)
@@ -43,10 +55,8 @@ public class PlayerCombat : MonoBehaviour
             }
             else if (hit.CompareTag("Breakable"))
             {
-                // แก้ Error: ลบเลข 1 ในวงเล็บออก
                 hit.GetComponent<BreakableWall>()?.TakeDamage();
             }
-            // ไม่ต้องใส่เช็ค Finalwall ในนี้ ดาบเลยจะฟันไม่เข้าโดยปริยาย
         }
         
         yield return new WaitForSeconds(attackTime); 
